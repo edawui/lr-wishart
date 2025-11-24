@@ -66,6 +66,7 @@ else:
 
 ##FFT pricing constants--- Workers
 
+EXPOSURE_SWAPTION_WORKERS=10
 FFT_SWAPTION_NB_INTERVALS=4
 FFT_SWAPTION_PRICING_WORKERS=4
 # Numerical constants
