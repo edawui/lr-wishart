@@ -14,6 +14,13 @@ import jax.numpy as jnp
 from multiprocessing import Pool, cpu_count
 import numpy as np
 
+import multiprocessing as mp
+from joblib import Parallel, delayed
+import jax
+import jax.numpy as jnp
+ 
+
+from ...config.constants import *
 from .base import BaseSwaptionPricer
 from ...utils.local_functions import tr_uv
 
@@ -302,7 +309,7 @@ class FourierPricer(BaseSwaptionPricer):
             "last_error": getattr(self, 'last_integration_error', None)
         }
 
-    def price_with_intervals_hybrid(self, intervals=None, n_outer=30):#, n_inner=15):
+    def price_with_intervals_hybrid_not_with_workers(self, intervals=None, n_outer=30):#, n_inner=15):
         """
         Hybrid: Vectorized outer integration + reduced inner integration points
     
@@ -348,6 +355,75 @@ class FourierPricer(BaseSwaptionPricer):
             total += val
     
         price = float(total) / math.pi
+        price *= math.exp(-self.model.alpha * self.model.maturity)
+        price /= (1 + tr_uv(self.model.u1, self.model.x0))
+    
+        return price
+
+    def price_with_intervals_hybrid(self, intervals=None, n_outer=30, n_workers=1):
+        """
+        Hybrid: Vectorized outer integration + parallel interval processing
+    
+        Parameters
+        ----------
+        n_outer : int
+            Number of points for outer (ui) integration
+        n_workers : int
+            Number of parallel workers. Use 1 for PC, 5+ for Colab
+        """
+        self.validate_inputs()
+    
+        if intervals is None:            
+            intervals = np.linspace(0.0, self.nmax, FFT_SWAPTION_NB_INTERVALS).tolist()
+    
+        self.model.compute_b3_a3()
+        a3 = self.model.a3
+        b3 = self.model.b3
+        ur = self.ur
+    
+        # Create vectorized phi_one
+        @jax.jit
+        def phi_one_batch(z_array):
+            """Compute phi_one for multiple z values"""
+            return jax.vmap(
+                lambda z: self.model.wishart.phi_one(1.0, z * a3)
+            )(z_array)
+    
+        @jax.jit
+        def integrand_batch(ui_array):
+            """Vectorized integrand"""
+            z_array = ur + 1j * ui_array
+            exp_zb3 = jnp.exp(z_array * b3)
+            phi_values = phi_one_batch(z_array)
+            return (exp_zb3 * phi_values / (z_array * z_array)).real
+    
+        # Define function to integrate one interval
+        def integrate_interval(a, b):
+            """Integrate over a single interval"""
+            ui_vals = jnp.linspace(a, b, n_outer)
+            integrand_vals = integrand_batch(ui_vals)
+            val = jnp.trapezoid(integrand_vals, ui_vals)
+            return float(val)
+    
+        # Parallel processing
+        n_workers= FFT_SWAPTION_PRICING_WORKERS
+        if n_workers == 1:
+            # Sequential (original behavior)
+            results = [integrate_interval(a, b) 
+                       for a, b in zip(intervals[:-1], intervals[1:])]
+        else:
+            # Parallel processing
+            interval_pairs = list(zip(intervals[:-1], intervals[1:]))
+        
+            # Use threading backend for JAX/GPU compatibility
+            results = Parallel(n_jobs=n_workers, backend='threading')(
+                delayed(integrate_interval)(a, b) 
+                for a, b in interval_pairs
+            )
+        # print(f"Hybrid pricing with {n_workers} workers")
+        total = sum(results)
+    
+        price = total / math.pi
         price *= math.exp(-self.model.alpha * self.model.maturity)
         price /= (1 + tr_uv(self.model.u1, self.model.x0))
     

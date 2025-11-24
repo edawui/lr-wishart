@@ -63,6 +63,11 @@ else:
 
 # mkt_data_folder = r"C:\Users\edem_\Dropbox\LinearRationalWishart_Work\Data\Data_new"  
 
+
+##FFT pricing constants--- Workers
+
+FFT_SWAPTION_NB_INTERVALS=4
+FFT_SWAPTION_PRICING_WORKERS=4
 # Numerical constants
 EPSABS = 1e-7
 EPSREL = 1e-04

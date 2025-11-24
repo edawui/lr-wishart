@@ -1,7 +1,7 @@
 You Now Have Two Repos:
 
-lr-wishart-all - Your full folder structure
-lr-wishart - Just the wishart_processes folder (the one you wanted)
+linear_rational_wishart-all - Your full folder structure
+linear_rational_wishart - Just the linear_rational_wishart folder (the one you wanted)
 
 
 Going Forward - How to Push Updates:
@@ -9,7 +9,7 @@ When you make changes to your code:
 
 Navigate to your folder (if not already there):
 
-bash   cd "E:\OneDrive\Dropbox\LinearRationalWishart_Work\Code\ED\LinearRationalWishart\LinearRationalWishart_NewCode\wishart_processes"
+bash   cd "E:\OneDrive\Dropbox\LinearRationalWishart_Work\Code\ED\LinearRationalWishart\LinearRationalWishart_NewCode\linear_rational_wishart"
 
 Add and commit changes:
 
@@ -26,7 +26,7 @@ Congrats on getting everything set up! 🚀
 
 
 =======================
-cd "E:\OneDrive\Dropbox\LinearRationalWishart_Work\Code\ED\LinearRationalWishart\LinearRationalWishart_NewCode\wishart_processes"
+cd "E:\OneDrive\Dropbox\LinearRationalWishart_Work\Code\ED\LinearRationalWishart\LinearRationalWishart_NewCode\linear_rational_wishart"
 
 
 General Workflow:
@@ -49,12 +49,12 @@ python
 from google.colab import drive
 drive.mount('/content/drive')
 %cd /content/drive/MyDrive
-!git clone https://github.com/edawui/lr-wishart.git
-%cd lr-wishart
+!git clone https://github.com/edawui/linear_rational_wishart.git
+%cd linear_rational_wishart
 
 Every Other Time:
 python
 from google.colab import drive
 drive.mount('/content/drive')
-%cd /content/drive/MyDrive/lr-wishart
+%cd /content/drive/MyDrive/linear_rational_wishart
 !git pull

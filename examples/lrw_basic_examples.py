@@ -634,7 +634,7 @@ def example_swap_exposure():
     
 def example_swaption_exposure():
     """Swaption pricing with different methods."""
-    print("\n\nExample 2: Swap Exposure")
+    print("\n\nExample 2: Swaption Exposure")
     print("-" * 40)
     
     # Set up model
@@ -680,7 +680,7 @@ def example_swaption_exposure():
 
 
     mc_pricer = WishartMonteCarloPricer(lrw_model)
-    exposure_observation_freq=0.2#0.1#50 #1.0/52
+    exposure_observation_freq=0.5#0.1#50 #1.0/52
     # exposure_dates = list(np.arange(0.0, final_maturity+exposure_observation_freq, exposure_observation_freq))
     exposure_dates = [0.0, 0.5]
     exposure_dates = list(np.arange(0.0, maturity, exposure_observation_freq))
@@ -704,7 +704,7 @@ def example_swaption_exposure():
     # # print(f"Fixed schedule: {fixed_schedule_trade}")
 
     # spread=0.0
-    nb_mc=100#100#100#250#100#15000#00#100#
+    nb_mc=50#100#100#250#100#15000#00#100#
     dt=exposure_observation_freq
     # dt=0.125/5.0
 
@@ -765,20 +765,20 @@ def example_swaption_exposure():
         # mean_profile.append(price_value_t)
     print(f"  fft Time: {time.perf_counter() - start:.2f}s")
 
-    print(f"Initial swap price: {initial_model_price}")
+    print(f"Initial swaption price: {initial_model_price}")
     
     compute_exposure=True
-    swaption_config = SwaptionConfig(maturity=maturity,
-                                       tenor=tenor,
-                                       strike=swap_rate, 
-                                       delta_float = delta_float,
-                                       delta_fixed= delta_fixed)
-    
-    lrw_model = LRWModel(lrw_model_config,swaption_config)
-    lrw_model.set_weight_matrices(u1,u2)
-    swaption_pricer = LRWSwaptionPricer(lrw_model)
-
     if compute_exposure:
+        swaption_config = SwaptionConfig(maturity=maturity,
+                                           tenor=tenor,
+                                           strike=swap_rate, 
+                                           delta_float = delta_float,
+                                           delta_fixed= delta_fixed)
+    
+        lrw_model = LRWModel(lrw_model_config,swaption_config)
+        lrw_model.set_weight_matrices(u1,u2)
+        swaption_pricer = LRWSwaptionPricer(lrw_model)
+
         # exposure_profile = swaption_pricer.compute_swaption_exposure_profile_vectorized_fast(  
         exposure_profile = swaption_pricer.compute_swaption_exposure_profile_vectorized_2(              
         # exposure_profile = swaption_pricer.compute_swaption_exposure_profile_vectorized(         
@@ -802,34 +802,34 @@ def example_swaption_exposure():
         # schema: str = "EULER_FLOORED",
         # batch_size: int = 500
             )
-        print(f"exposure_profile shape: {np.array(exposure_profile).shape}")
-        print(f"exposure_profile : {exposure_profile}")
+        # print(f"exposure_profile shape: {np.array(exposure_profile).shape}")
+        # print(f"exposure_profile : {exposure_profile}")
         mean_profile = np.mean(exposure_profile, axis=1)
         pfe =  np.percentile(exposure_profile, 95, axis=1)
          
-    print(f"Initial swap price: {initial_model_price}")
+        print(f"Initial swaption price: {initial_model_price}")
      
-    print(f"mean_profile: {len(mean_profile)}, {mean_profile}")
+        print(f"mean_profile: {len(mean_profile)}, {mean_profile}")
 
-    # Plot meanProfile and PFE(95%) vs exposureDates
-    plt.figure(figsize=(10, 6))
-    plt.plot(exposure_dates, mean_profile, label='Mean Exposure')#, marker='o')
-    plt.plot(exposure_dates, pfe, label='PFE (95%)')#, marker='x')
-    plt.plot(exposure_dates, initial_model_price, label='initial_swap_price')#, marker='x')
-    plt.xlabel('Exposure Date')
-    plt.ylabel('Exposure')
-    plt.title('Exposure Profile: Mean and PFE(95%)')
-    plt.legend()
-    plt.grid(True)
-    plt.show()
+        # Plot meanProfile and PFE(95%) vs exposureDates
+        plt.figure(figsize=(10, 6))
+        plt.plot(exposure_dates, mean_profile, label='Mean Exposure')#, marker='o')
+        plt.plot(exposure_dates, pfe, label='PFE (95%)')#, marker='x')
+        plt.plot(exposure_dates, initial_model_price, label='initial_swap_price')#, marker='x')
+        plt.xlabel('Exposure Date')
+        plt.ylabel('Exposure')
+        plt.title('Exposure Profile: Mean and PFE(95%)')
+        plt.legend()
+        plt.grid(True)
+        plt.show()
 
-    # print(f"Dates: {exposureDates}")
-    # print(f"Average Exposure: {meanProfile}")
-    # print(f"PFE(95%): {pfe}")
-    if len(exposure_profile)>0:
-        for i in range(len(exposure_dates)):
-            cProfile = exposure_profile[i,:]
-            print(f"{exposure_dates[i]}: Average Exposure: {np.mean(cProfile)}, PFE(95%): {np.percentile(cProfile, 95)}") 
+        # print(f"Dates: {exposureDates}")
+        # print(f"Average Exposure: {meanProfile}")
+        # print(f"PFE(95%): {pfe}")
+        if len(exposure_profile)>0:
+            for i in range(len(exposure_dates)):
+                cProfile = exposure_profile[i,:]
+                print(f"{exposure_dates[i]}: Average Exposure: {np.mean(cProfile)}, PFE(95%): {np.percentile(cProfile, 95)}") 
 
   
 
